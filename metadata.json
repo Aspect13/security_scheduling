@@ -2,6 +2,6 @@
   "name": "Carrier Security Scheduling Plugin",
   "version": "0.1",
   "module": "plugins.security_scheduling",
-  "depends_on": ["integrations"],
+  "depends_on": ["security"],
   "init_after": []
 }

@@ -146,10 +146,11 @@ schedulingApp.component('schedule-item', {
                                         v-for="t in periods"
                                     >
                                         <label>
-                                            <input type="radio" class="form-check-input" :value="t"
-                                                   :name="'cron_radio_' + schedule_id"
-                                                   :checked="cron_radio === t"
-                                                   @change="handleInputChange"
+                                            <input type="radio" class="form-check-input align-middle" 
+                                                :value="t"
+                                                :name="'cron_radio_' + schedule_id"
+                                                :checked="cron_radio === t"
+                                                @change="handleInputChange"
                                             >
                                             <h13 class="form-check-label text-capitalize">[[ t ]]</h13>
                                         </label>

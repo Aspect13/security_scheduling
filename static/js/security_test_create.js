@@ -90,7 +90,7 @@ schedulingApp.component('schedule-item', {
                     break
                 case 'yearly':
                     this.$emit('update:cron',
-                        `${today.getMinutes()} ${today.getHours()} ${today.getDate()} ${today.getMonth()} *`)
+                        `${today.getMinutes()} ${today.getHours()} ${today.getDate()} ${today.getMonth() + 1} *`)
                     break
                 default:
             }
@@ -209,11 +209,15 @@ schedulingApp.config.compilerOptions.isCustomElement = tag => ['h9', 'h13', 'h7'
 const schedulingVm = schedulingApp.mount('#security_scheduling')
 
 $(document).ready(() => {
-    new SectionDataProvider('security_scheduling', {
+    new SectionDataProvider('scheduling', {
         get: () => schedulingVm.body_data,
         set: values => {
             console.log('SET schedules', values)
+            schedulingVm.schedules_items = values.map(item => ({...scheduleItemInitialState(), ...item}))
         },
         clear: () => schedulingVm.schedules_items = [],
+        setError: values => {
+            console.log('SET ERRORS for schedules', values)
+        },
     }).register()
 })

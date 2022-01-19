@@ -26,6 +26,11 @@ class SecurityScheduleModel(BaseModel):
         assert croniter.is_valid(value), 'Cron expression is invalid'
         return value
 
+    @validator('name')
+    def validate_empty(cls, value):
+        assert bool(value), 'Cannot be empty'
+        return value
+
     @property
     def _db_schedule(self):
         return Schedule(

@@ -17,6 +17,7 @@
                 v-model:test_params="item.test_params"
                 :schedule_id="index"
                 @delete="handleDeleteItem"
+                :errors="errors[index]"
         >
             {{ template_slot("params_table", payload = {
                 "caption": "",

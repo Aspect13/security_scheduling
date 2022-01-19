@@ -4,7 +4,8 @@ const scheduleItemInitialState = () => ({
     active: true,
     name: '',
     id: null,
-    test_params: []
+    test_params: [],
+    errors: {}
 })
 
 
@@ -12,7 +13,8 @@ const schedulingApp = Vue.createApp({
     delimiters: ['[[', ']]'],
     data() {
         return {
-            schedules_items: []
+            schedules_items: [],
+            errors: {}
         }
     },
     computed: {
@@ -21,23 +23,7 @@ const schedulingApp = Vue.createApp({
         },
     },
     methods: {
-        handleError(response) {
-            try {
-                response.json().then(
-                    errorData => {
-                        console.log(errorData)
-                        errorData.forEach(item => {
-                            console.log('item error', item)
-                            this.error = {[item.loc[0]]: item.msg}
-                        })
-                    }
-                )
-            } catch (e) {
-                alertMain.add(e, 'danger-overlay')
-            }
-        },
         handleDeleteItem(schedule_id) {
-            // console.log('handleDelete on id', schedule_id),
             this.schedules_items.splice(schedule_id, 1)
         },
         handleAddItem() {
@@ -50,7 +36,7 @@ const schedulingApp = Vue.createApp({
 schedulingApp.component('schedule-item', {
     props: [...Object.keys(scheduleItemInitialState()), 'schedule_id'],
     emits: [
-        ...Object.keys(scheduleItemInitialState()).filter(item => item !== 'id').map(item => `update:${item}`),
+        ...Object.keys(scheduleItemInitialState()).filter(item => !['id', 'errors'].includes(item)).map(item => `update:${item}`),
         'delete'
     ],
     delimiters: ['[[', ']]'],
@@ -96,6 +82,22 @@ schedulingApp.component('schedule-item', {
             }
         },
     },
+    watch: {
+        errors(newE, oldE) {
+            if (!!newE?.test_params) {
+                const [row, col_name, ..._] = newE.test_params.loc
+                const get_col_by_name = name => $(`#security_test_params thead th[data-field=${name}]`).index()
+                $(`#${this.test_params_id} tr[data-index=${row}] td:nth-child(${get_col_by_name(col_name) + 1}) input`)
+                .addClass('is-invalid')
+                .next('div.invalid-tooltip-custom')
+                .text(newE.test_params.msg)
+            } else {
+                $(`#${this.test_params_id}`).removeClass('is-invalid')
+            }
+
+
+        }
+    },
     computed: {
         test_params_id() {
             return `schedule_test_params_${this.schedule_id}`
@@ -103,6 +105,7 @@ schedulingApp.component('schedule-item', {
         test_params_table() {
             return $(`#${this.test_params_id} table.params-table`)
         },
+
     },
     template: `
         <div class="col-12" >
@@ -133,7 +136,9 @@ schedulingApp.component('schedule-item', {
                                    placeholder="Name"
                                    :value="name"
                                    @change="$emit('update:name', $event.target.value)"
+                                   :class="{ 'is-invalid': errors?.name }"
                                 >
+                                <div class="invalid-feedback">[[ errors?.name?.msg ]]</div>
                             </label>
                         </div>
                         <div class="col-6 row row-cols-1">
@@ -168,7 +173,9 @@ schedulingApp.component('schedule-item', {
                                        :value="cron"
                                        :disabled="cron_radio !== 'custom'"
                                        @change="$emit('update:cron', $event.target.value)"
+                                       :class="{ 'is-invalid': errors?.cron }"
                                     >
+                                    <div class="invalid-feedback">[[ errors?.cron?.msg ]]</div>
                                 </div>
                                 <div class="col-12">
                                     <h13 style="color: var(--basic)">
@@ -212,12 +219,18 @@ $(document).ready(() => {
     new SectionDataProvider('scheduling', {
         get: () => schedulingVm.body_data,
         set: values => {
-            console.log('SET schedules', values)
             schedulingVm.schedules_items = values.map(item => ({...scheduleItemInitialState(), ...item}))
         },
         clear: () => schedulingVm.schedules_items = [],
-        setError: values => {
-            console.log('SET ERRORS for schedules', values)
-        },
+        setError: data => {
+                const [_, index, field, ...rest] = data.loc
+
+                if (schedulingVm.errors[index]) {
+                    schedulingVm.errors[index][field] = {loc: rest, msg: data.msg}
+                } else {
+                    schedulingVm.errors[index] = {[field]: {loc: rest, msg: data.msg}}
+                }
+            },
+        clearErrors: () => schedulingVm.errors = {}
     }).register()
 })

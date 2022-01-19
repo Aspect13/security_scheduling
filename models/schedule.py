@@ -15,8 +15,8 @@ class Schedule(AbstractBaseMixin, RpcMixin, Base):
     __tablename__ = 'schedule'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(64), unique=False)
-    cron = Column(String(64), unique=False)
+    name = Column(String(64), unique=False, nullable=False)
+    cron = Column(String(64), unique=False, nullable=False)
     active = Column(Boolean, default=True)
     rpc_func = Column(String(64), unique=False, nullable=False)
     rpc_kwargs = Column(JSON, nullable=False, default={})
